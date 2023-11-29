@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
-
+const importRegex =
+  /import\s+(?:(?:\*\s+as\s+\w+)|(?:\{[^{}]*\})|(?:\w+(?:,\s*\{[^{}]*\})?)|(?:\{[^{}]*\},?\s*\w+))\s+from\s+['"].*['"]/g;
 const defaultRegex = `import\\s*(\\{[^}]*\\})?\\s*from\\s+['"].*['"]`;
 const specRegex = `import\\s+[^{]*\\s+from\\s+['"].*['"]`;
 const maxDepth = 2;
@@ -17,36 +18,36 @@ export const getImportStatements = (filePath) => {
         return;
       }
 
-      const importStatements = data.match(
-        new RegExp(defaultRegex + "|" + specRegex, "g")
-      );
+      const importStatements = data.match(importRegex);
       return resolve(importStatements);
     });
   });
 };
 
-export const matchImportStatement = (importStatement) => {
-  const result = {
-    components: [],
-    path: "",
-  };
-  const specImportRegex = /import\s+\{([^}]*)\}\s+from\s+['"](.*?)['"]/;
-  const anonymousImportRegex = /import\s+([^{\s]+)\s+from\s+['"](.*?)['"]/;
+export const convertImportStatments = (importStatements) => {
+  const importRegex =
+    /import\s+(?:(?:\*\s+as\s+(\w+))|(?:\{([^{}]+)\})|([\w\s,]+))\s+from\s+['"]([^'"]+)['"]/g;
+  const imports = [];
 
-  let matches = importStatement.match(specImportRegex);
-  if (!matches) {
-    matches = importStatement.match(anonymousImportRegex);
+  let match;
+  while ((match = importRegex.exec(importStatements)) !== null) {
+    const [, namespace, namedImports, defaultImport, importPath] = match;
+
+    let importItems = [];
+
+    if (namespace) {
+      importItems.push({ name: "*", path: importPath });
+    } else if (namedImports) {
+      const names = namedImports.split(",").map((name) => name.trim());
+      importItems = names.map((name) => ({ name, path: importPath }));
+    } else if (defaultImport) {
+      importItems.push({ name: defaultImport, path: importPath });
+    }
+
+    imports.push(...importItems);
   }
 
-  if (matches && matches.length === 3) {
-    const components = matches[1].split(",").map((_) => _.trim());
-    const importPath = matches[2];
-    result.components = components;
-    result.path = importPath;
-  } else {
-    console.log("No match found.");
-  }
-  return result;
+  return imports;
 };
 
 export const scanFile = async (filePath) => {
@@ -58,7 +59,7 @@ export const scanFile = async (filePath) => {
       return;
     }
 
-    const matchedStatements = importStatements.map(matchImportStatement);
+    const matchedStatements = convertImportStatments(importStatements);
     return Promise.resolve(matchedStatements);
   } catch (error) {
     console.error(error);
@@ -94,7 +95,7 @@ export const scanDirectory = async (
           results.push({
             path: filePath,
             name: path.basename(filePath),
-            importStatements: res,
+            components: res,
           })
         )
       );

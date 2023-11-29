@@ -8,6 +8,5 @@
     "start": "node main.js"
   },
   "dependencies": {
-    "ramda": "^0.29.1"
   }
 }

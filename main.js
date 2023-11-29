@@ -2,8 +2,6 @@ import { scanDirectory, scanFile, writeFile } from "./src/utils/index.js";
 import path from "path";
 // 获取命令行参数
 
-import * as R from "ramda";
-
 const results = [];
 await scanDirectory(
   "../asknlearn/packages/core/ask-and-learn/src/pages/AIAbilityDetailPage",
