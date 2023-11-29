@@ -4,7 +4,7 @@ import path from "path";
 
 const results = [];
 await scanDirectory(
-  "../asknlearn/packages/core/ask-and-learn/src/pages/AIAbilityDetailPage",
+  "../asknlearn/packages/core/ask-and-learn/src/pages",
   0,
   results,
   (filePath) => {
@@ -13,7 +13,6 @@ await scanDirectory(
 );
 console.log(`共扫描${results.length}个文件`);
 
-console.log(results);
 writeFile(
   "output.json",
   {
