@@ -106,7 +106,11 @@ export const scanDirectory = async (
 
 export const writeFile = (target, content, clean = true) => {
   if (clean) {
-    fs.truncateSync(target, 0);
+    try {
+      fs.truncateSync(target, 0);
+    } catch (error) {
+      console.error("清理文件失败： 目标文件不存在", target);
+    }
   }
 
   fs.appendFileSync(target, JSON.stringify(content, null, 2), (err) => {
