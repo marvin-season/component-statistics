@@ -1,5 +1,6 @@
 import { scanDirectory, scanFile, writeFile } from "./src/utils/index.js";
 import path from "path";
+// 获取命令行参数
 
 import * as R from "ramda";
 
